@@ -4,11 +4,16 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlSerializer;
 
 import com.cwd.student_manager.R;
+import com.cwd.students.students;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -18,16 +23,17 @@ import android.util.Xml;
 import android.view.View;
 import android.view.Window;
 import android.widget.EditText;
-import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.RadioGroup;
-import android.widget.TextView;
+import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
 	private EditText ed_name;
 	private EditText ed_num;
 	private RadioGroup rg_sex;
-	private LinearLayout result;
+	private ListView result;
+	private List<students> studentslist = null;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -38,8 +44,10 @@ public class MainActivity extends Activity {
 		ed_name = (EditText) findViewById(R.id.et_name);
 		ed_num = (EditText) findViewById(R.id.et_num);
 		rg_sex = (RadioGroup) findViewById(R.id.rg_sex);
-		result = (LinearLayout) findViewById(R.id.ll_result);
-		refreshData();
+		result = (ListView) findViewById(R.id.ll_result);
+		studentslist = new ArrayList<students>();
+		// result.setAdapter(new SimpleAdapter());
+		// refreshData();
 	}
 
 	public void save(View view) {
@@ -85,12 +93,13 @@ public class MainActivity extends Activity {
 
 		}
 		refreshData();
+		refreshview();
 	}
 
 	// 刷新数据
 	private void refreshData() {
 		// 清除旧的全部的数据
-		result.removeAllViews();
+		studentslist = new ArrayList<students>();
 		// 解析已经存在的xml文件，把里面的数据全部都获取出来，添加上到界面上
 		File files = getFilesDir();
 		for (File file : files.listFiles()) {
@@ -98,7 +107,38 @@ public class MainActivity extends Activity {
 		}
 	}
 
+	private void refreshview() {
+		//result.removeAllViews();
+		List<HashMap<String, String>> list = new ArrayList<HashMap<String, String>>();
+		if (studentslist != null) {
+			for (Iterator iterator = studentslist.iterator(); iterator
+					.hasNext();) {
+				students student = (students) iterator.next();
+				HashMap<String, String> map = new HashMap<String, String>();				
+				map.put("name", student.getName());
+				map.put("num", student.getNum());
+				map.put("sex", student.getSex());
+				list.add(map);
+			}
+			SimpleAdapter simpleAdapter = new SimpleAdapter(this, list,
+					R.layout.student_item,
+					new String[] { "name", "num", "sex" }, new int[] {
+							R.id.name, R.id.num, R.id.sex });
+			// 刷新界面
+			result.setAdapter(simpleAdapter);
+		}
+	}
+	
+	@Override
+	protected void onResume() {
+		// TODO Auto-generated method stub		
+		refreshData();
+		refreshview();
+		super.onResume();
+	}
+
 	private void readXmlInfo(File file) {
+		//List<students> studentslist_temp = new ArrayList<students>();
 		try {
 			// init
 			XmlPullParser parser = Xml.newPullParser();
@@ -106,22 +146,23 @@ public class MainActivity extends Activity {
 			InputStream inputStream = new FileInputStream(file);
 			parser.setInput(inputStream, "utf-8");
 			int type = parser.getEventType();
-			StringBuilder sb = new StringBuilder();
+
+			students student = new students();
 			while (type != XmlPullParser.END_DOCUMENT) {
 				switch (type) {
 				case XmlPullParser.START_TAG:
 					if ("name".equals(parser.getName())) {
 						// 这是name节点
 						String name = parser.nextText();
-						sb.append("--name:" + name);
+						student.setName(name);
 					} else if ("num".equals(parser.getName())) {
-						// 这是name节点
+						// 这是num节点
 						String num = parser.nextText();
-						sb.append("--num:" + num);
+						student.setNum(num);
 					} else if ("sex".equals(parser.getName())) {
-						// 这是name节点
+						// 这是sex节点
 						String sex = parser.nextText();
-						sb.append("--sex:" + sex);
+						student.setSex(sex);
 					}
 					break;
 				default:
@@ -129,16 +170,14 @@ public class MainActivity extends Activity {
 				}
 				type = parser.next();// parser next element
 			}
+			if (student.getName() != null) {
+				studentslist.add(student);
+			} else {
+				Log.d("", "student is null");
+			}
 			inputStream.close();
-			String text = sb.toString();
-			TextView tView = new TextView(this);
-			tView.setText(text);
-			this.result.addView(tView);
 		} catch (Exception e) {
-			TextView tV = new TextView(this);
-			tV.setText("null");
-			result.addView(tV);
-		}
-
+			e.printStackTrace();
+		}		
 	}
 }

@@ -75,19 +75,12 @@
         android:layout_height="fill_parent"
         android:orientation="vertical" >
 
-        <ScrollView
-            android:layout_width="fill_parent"
-            android:layout_height="0dip"
-            android:layout_weight="1" >
-
-            <LinearLayout
-                android:id="@+id/ll_result"
-                android:layout_width="fill_parent"
-                android:layout_height="0dip"
-                android:layout_weight="1"
-                android:orientation="vertical" >
-            </LinearLayout>
-        </ScrollView>
+        <ListView
+            android:id="@+id/ll_result"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:fastScrollEnabled="true" />
 
         <Button
             android:layout_width="fill_parent"
@@ -95,6 +88,5 @@
             android:onClick="save"
             android:text="save" />
     </LinearLayout>
->
 
 </LinearLayout>
